@@ -123,23 +123,31 @@ class GameDisplayGraphics{
 	gc.fillText(coin_str + " Coins", 900, 225 + (i+4)*50);
 
 	displayCastle(state, CastleID.CastleA, 25);
-	displayCastle(state, CastleID.CastleB, 275);
-	displayCastle(state, CastleID.CastleC, 525);
+	displayCastle(state, CastleID.CastleB, 300);
+	displayCastle(state, CastleID.CastleC, 575);
     }
 
     static void displayCastle(GameState state, CastleID cas, int X){
+	boolean do_hid_top = false;
+	boolean do_hid_bot = false;
 	if (state.getCastleWon(cas) == null){
 	    gc.setFill(Color.GREEN);
 	    gc.setStroke(Color.GREEN);
-	    gc.strokeRect(X, 400, 225, 75);
+	    gc.strokeRect(X, 400, 250, 75);
 	    gc.fillText(cas.name(), X+25, 450);
 	}
 	else{
 	    PlayerID winner = state.getCastleWon(cas);
 	    gc.setStroke(Color.BLACK);
 	    gc.setFill(Color.BLACK);
-	    gc.strokeRect(X, 400, 200, 75);
+	    gc.strokeRect(X, 400, 250, 75);
 	    gc.fillText(winner.name(), X+25, 450);
+	    if(state.top_hidden == cas){
+		do_hid_top = true;
+	    }
+	    if(state.bot_hidden == cas){
+		do_hid_bot = true;
+	    }
 	}
 
 	List<Monster> top_mons = state.getMonsters(cas, PlayerID.TOP);
@@ -149,12 +157,29 @@ class GameDisplayGraphics{
 	int i = 0;
 	for(Monster mon : top_mons){
 	    i = i+1;
-	    gc.fillText(d_str(mon), X+25, 450 - 15 - i*50);
+	    if((do_hid_top)&&(mon == Monster.DRAGON || mon == Monster.DEAD)){
+		gc.setFill(Color.PURPLE);
+		gc.fillText(d_str(mon), X+25, 450 - 15 - i*50);
+		gc.setFill(Color.RED);
+		do_hid_top = false;
+	    }
+	    else{
+		gc.fillText(d_str(mon), X+25, 450 - 15 - i*50);
+	    }
 	}
+	
 	i = 0;
 	for(Monster mon : bot_mons){
 	    i = i+1;
-	    gc.fillText(d_str(mon), X+25, 450 + 10 + i*50);
+	    if((do_hid_bot)&&(mon == Monster.DRAGON || mon == Monster.DEAD)){
+		gc.setFill(Color.PURPLE);
+		gc.fillText(d_str(mon), X+25, 450 +10 + i*50);
+		gc.setFill(Color.RED);
+		do_hid_bot = false;
+	    }
+	    else{
+		gc.fillText(d_str(mon), X+25, 450 +10 + i*50);
+	    }
 	}
     }
     
