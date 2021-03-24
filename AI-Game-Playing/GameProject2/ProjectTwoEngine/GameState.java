@@ -46,6 +46,8 @@ public class GameState {
 	    state.setCastleWon(CastleID.CastleB, PlayerID.TOP);
 	    state.setCastleWon(CastleID.CastleC, PlayerID.TOP);
 	}
+	state.game_over = true;
+	
 	return state;
     }
 
