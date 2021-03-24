@@ -33,13 +33,31 @@ public class GameRules{
 	GameState new_state = null;
 
 	if (mv instanceof BuyMonsterMove){
-	    new_state = makeMoveBuyMonster(state, (BuyMonsterMove) mv);
+	    if ( isLegalMove(state, mv) ){
+		new_state = makeMoveBuyMonster(state, (BuyMonsterMove) mv);
+	    }
+	    else{
+		new_state = GameState.concedeState(state, state.getCurPlayer());
+	    }
 	}
 	if (mv instanceof RespondMove){
-	    new_state = makeMoveRespond(state, (RespondMove) mv);
+	    if ( isLegalMove(state, mv) ){
+		new_state = makeMoveRespond(state, (RespondMove) mv);
+	    }
+	    else{
+		PlayerID o_player = otherPlayer(state.getCurPlayer());
+		new_state = GameState.concedeState(state, o_player);
+	    }
 	}
 	if (mv  instanceof PlaceMonsterMove){
-	    new_state = makeMovePlaceMonster(state, (PlaceMonsterMove) mv);
+	    if ( isLegalMove(state, mv) ){
+		new_state = makeMovePlaceMonster(state, (PlaceMonsterMove) mv);
+	    }
+	    else{
+		List<Move> leg_mv = getLegalMoves(state);
+		PlayerID play = leg_mv.get(0).getPlayer();
+		new_state = GameState.concedeState(state, play);
+	    }
 	}
 	return new_state;
     }
@@ -82,7 +100,7 @@ public class GameRules{
 	Move last_move = state.getLastMove();
 	boolean answer = false;
 	
-	if( last_move instanceof PlaceMonsterMove ){
+	if( last_move == null || last_move instanceof PlaceMonsterMove ){
 	    List<Move> legal = getLegalMoves(state);
 	    for( Move leg_mov : legal ){
 		if (leg_mov instanceof BuyMonsterMove){
@@ -292,19 +310,12 @@ public class GameRules{
 	if(state.getHidden(PlayerID.BOT) == cas){
 	    state.addMonster(cas, PlayerID.BOT,  Monster.DRAGON);
 	}
-	
-	if( state.getMonsters(cas, PlayerID.TOP).contains( Monster.SLAYER) ){
-	    state.removeMonster(cas, PlayerID.BOT, Monster.DRAGON);
-	    state.addMonster(cas, PlayerID.BOT, Monster.DEAD);
-	}
-	if( state.getMonsters(cas, PlayerID.BOT).contains( Monster.SLAYER) ){
-	    state.removeMonster(cas, PlayerID.TOP, Monster.DRAGON);
-	    state.addMonster(cas, PlayerID.TOP, Monster.DEAD);
-	}
-
 		
 	List<Monster> top_mons = state.getMonsters(cas, PlayerID.TOP);
 	List<Monster> bot_mons = state.getMonsters(cas, PlayerID.BOT);
+	
+	handleDragons(top_mons, bot_mons);
+	handleDragons(bot_mons, top_mons);
 	int top_total = 0;
 	int bot_total = 0;
 
@@ -334,4 +345,24 @@ public class GameRules{
 	return state;
 
     }
+
+    //This function mutates the lists that it gets as input!!
+    //I am changing a state by changing the monster lists -- beware!
+    static void handleDragons(List<Monster> slay_mons, List<Monster> drag_mons){
+	int slay_count = 0;
+	
+	for(Monster mon: slay_mons){
+	    if (mon == Monster.SLAYER){
+		slay_count = slay_count + 1;
+	    }
+	}
+
+	for(int i=0; i<slay_count; i++){
+	    if(drag_mons.contains(Monster.DRAGON) ){
+		drag_mons.remove(Monster.DRAGON);
+		drag_mons.add(Monster.DEAD);
+	    }
+	}
+    }
+
 }
