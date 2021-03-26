@@ -27,7 +27,7 @@ public class MonteCarlo implements Player {
 
     CardCounter cardCounter;
 
-    int TOTAL_SEEDS = 100;
+    int TOTAL_SEEDS = 1000;
 
     public MonteCarlo() {
         cardCounter = new CardCounter();
@@ -131,13 +131,17 @@ public class MonteCarlo implements Player {
             List<Move> legalMoves = GameRules.getLegalMoves(nextState);
             Collections.shuffle(legalMoves);
 
-            System.out.println("Castles:");
-            for (CastleID castleId : CastleID.values()) {
-                System.out.println("\t"+nextState.getMonsters(castleId, PlayerID.TOP)+"\t"+nextState.getMonsters(castleId, PlayerID.BOT));
+            // Bug with isGameOver();
+            if (legalMoves.size() == 0) {
+                break;
             }
+            // System.out.println("Castles:");
+            // for (CastleID castleId : CastleID.values()) {
+            //     System.out.println(nextState.getCastleWon(castleId)+"\t"+nextState.getMonsters(castleId, PlayerID.TOP)+"\t"+nextState.getMonsters(castleId, PlayerID.BOT));
+            // }
 
             Move nextMove = legalMoves.get(0);
-            System.out.println(nextMove);
+            // System.out.println(nextMove);
 
             nextState = GameRules.makeMove(nextState, nextMove);
         }
