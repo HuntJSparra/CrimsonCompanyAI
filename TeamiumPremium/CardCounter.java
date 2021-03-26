@@ -1,9 +1,10 @@
 package TeamiumPremium;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 
-import ProjectTwoEngine.Deck;
 import ProjectTwoEngine.Monster;
 
 public class CardCounter {
@@ -26,7 +27,7 @@ public class CardCounter {
 
     // Deep copy constructor
     public CardCounter(CardCounter original) {
-        numCards = original.numCards.clone(); // Make sure shallow-copy works for Integer and enums
+        numCards = (HashMap<Monster, Integer>)original.numCards.clone(); // Make sure shallow-copy works for Integer and enums
     }
 
 
