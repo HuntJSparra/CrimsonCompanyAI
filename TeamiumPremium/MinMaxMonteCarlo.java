@@ -1,6 +1,7 @@
 package TeamiumPremium;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
@@ -26,6 +27,7 @@ public class MinMaxMonteCarlo implements Player {
     CardCounter cardCounter;
 
     int MAX_DEPTH = 5;
+    int MAX_CARLO = 30;
 
     public MinMaxMonteCarlo() {
         cardCounter = new CardCounter();
@@ -95,45 +97,60 @@ public class MinMaxMonteCarlo implements Player {
     }
 
     private Move act(GameState state) {
-        state.setDeck(cardCounter.createDeck());
-        state.setHidden(opponentId, randomOpponentDragonPlacement(state));
-
-        double alpha = Double.NEGATIVE_INFINITY;
-        double beta = Double.POSITIVE_INFINITY;
-
         List<Move> legalMoves = GameRules.getLegalMoves(state);
 
-        Move bestMove = legalMoves.get(0);
-        double bestScore = alpha;
-        for (Move move : legalMoves) {
-            List<Monster> backupDeck = new ArrayList(state.getDeck()); // Shallow-copy!
+        HashMap<Move, Integer> bestMoveCounts = new HashMap<Move, Integer>();
 
-            GameState nextState = GameRules.makeMove(state, move);
-            double moveScore = 0;
-            if (move instanceof BuyMonsterMove) {
-                moveScore = minimize(nextState, alpha, beta, MAX_DEPTH);
-            } else if (move instanceof RespondMove) {
-                RespondMove respondMove = (RespondMove)move;
-                if (respondMove.isPass()) {
-                    moveScore = maximize(nextState, alpha, beta, MAX_DEPTH);
-                } else {
+        for (int carlo=0; carlo<MAX_CARLO; carlo++) {
+            state.setDeck(cardCounter.createDeck());
+            state.setHidden(opponentId, randomOpponentDragonPlacement(state));
+
+            double alpha = Double.NEGATIVE_INFINITY;
+            double beta = Double.POSITIVE_INFINITY;
+
+            Move bestMove = legalMoves.get(0);
+            double bestScore = alpha;
+            for (Move move : legalMoves) {
+                List<Monster> backupDeck = new ArrayList(state.getDeck()); // Shallow-copy!
+
+                GameState nextState = GameRules.makeMove(state, move);
+                double moveScore = 0;
+                if (move instanceof BuyMonsterMove) {
+                    moveScore = minimize(nextState, alpha, beta, MAX_DEPTH);
+                } else if (move instanceof RespondMove) {
+                    RespondMove respondMove = (RespondMove)move;
+                    if (respondMove.isPass()) {
+                        moveScore = maximize(nextState, alpha, beta, MAX_DEPTH);
+                    } else {
+                        moveScore = minimize(nextState, alpha, beta, MAX_DEPTH);
+                    }
+                } else if (move instanceof PlaceMonsterMove) {
                     moveScore = minimize(nextState, alpha, beta, MAX_DEPTH);
                 }
-            } else if (move instanceof PlaceMonsterMove) {
-                moveScore = minimize(nextState, alpha, beta, MAX_DEPTH);
+
+                state.setDeck(backupDeck); // Because GameRules.makeMove modifies the deck (state copy constructor is shallow)
+                
+                // System.out.println(moveScore);
+                if (moveScore > bestScore) {
+                    alpha = moveScore;
+                    bestScore = moveScore;
+                    bestMove = move;
+                }
             }
 
-            state.setDeck(backupDeck); // Because GameRules.makeMove modifies the deck (state copy constructor is shallow)
-            
-            System.out.println(moveScore);
-            if (moveScore > bestScore) {
-                alpha = moveScore;
-                bestScore = moveScore;
-                bestMove = move;
-            }
+            Integer oldCount = bestMoveCounts.getOrDefault(0, bestMove);
+            bestMoveCounts.put(bestMove, oldCount+1);
         }
 
-        System.out.println("=======================");
+        // Select move with most wins
+        int bestWins = -1;
+        Move bestMove = null;
+        for (Move move : moveToWins.keySet()) {
+            if (moveToWins.get(move) > bestWins) {
+                bestMove = move;
+                bestWins = moveToWins.get(move);
+            }
+        }
 
         return bestMove;
     }
@@ -266,9 +283,20 @@ public class MinMaxMonteCarlo implements Player {
 
     // Returns a random CastleID (does not factor in actual probability)
     private CastleID randomOpponentDragonPlacement(GameState state) {
+        if (state.getHidden(this.opponentId) != null) {
+            return state.getHidden(this.opponentId);
+        }
+
         Random rng = new Random();
-        CastleID[] ids = CastleID.values();
-        return ids[ rng.nextInt(ids.length) ];
+        List<CastleID> possibleDragonCastles;
+
+        for (CastleID castleID : CastleID.values()) {
+            if (state.getMonsters(castleID, this.id).length() > 4 || state.getMonsters(castleID, this.opponentId).length() > 4) {
+                possibleDragonCastles.add(castleID);
+            }
+        }
+
+        return possibleDragonCastles.get(rng.nextInt(possibleDragonCastles.length()));
     }
 
     private boolean isLostCause(GameState state) {
