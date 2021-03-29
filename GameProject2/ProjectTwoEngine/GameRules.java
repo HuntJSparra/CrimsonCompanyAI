@@ -278,11 +278,15 @@ public class GameRules{
 	if (state.getNextMonster() != null){
 	    new_state.addPublicMonster( new_state.getNextMonster() );
 	}
+	
 	if (new_state.getDeck().size() != 0){
 	    List<Monster> deck = new_state.getDeck();
 	    Monster next_mon = deck.remove(0);
 	    new_state.setDeck(deck);
 	    new_state.setNextMonster(next_mon);
+	}
+	else {
+	    new_state.setNextMonster(null);
 	}
 
 	//Next we place the monster and do a battle if needed
@@ -342,6 +346,10 @@ public class GameRules{
 	    }
 	}
 
+	if (isGameOver(state)){
+	    state.game_over = true;
+	}
+		
 	return state;
 
     }

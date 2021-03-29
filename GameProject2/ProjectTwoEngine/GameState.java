@@ -337,11 +337,25 @@ public class GameState {
 
 	if(play == PlayerID.TOP){
 	    deck_monsters = null;
-	    bot_hidden = null;
+
+	    CastleID opp_hide = old_state.getHidden(PlayerID.BOT);
+	    if (old_state.getCastleWon( opp_hide) == null){ 
+		bot_hidden = null;
+	    }
+	    else{
+		bot_hidden = opp_hide;
+	    }
 	}
 	if(play == PlayerID.BOT){
 	    deck_monsters = null;
-	    top_hidden = null;
+
+	    CastleID opp_hide = old_state.getHidden(PlayerID.TOP);
+	    if (old_state.getCastleWon( opp_hide) == null){ 
+		bot_hidden = null;
+	    }
+	    else{
+		bot_hidden = opp_hide;
+	    }
 	}
     }
 				
