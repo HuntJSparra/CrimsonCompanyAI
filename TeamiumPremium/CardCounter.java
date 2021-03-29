@@ -22,7 +22,7 @@ public class CardCounter {
         numCards.put(Monster.WOLF, 4);
 
         numCards.put(Monster.GIANT, 5);
-        numCards.put(Monster.WARLION, 4);
+        numCards.put(Monster.WARLION, 5);
     }
 
     // Deep copy constructor
