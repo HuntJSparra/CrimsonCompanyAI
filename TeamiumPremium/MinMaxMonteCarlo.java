@@ -138,17 +138,17 @@ public class MinMaxMonteCarlo implements Player {
                 }
             }
 
-            Integer oldCount = bestMoveCounts.getOrDefault(0, bestMove);
+            Integer oldCount = bestMoveCounts.getOrDefault(bestMove, 0);
             bestMoveCounts.put(bestMove, oldCount+1);
         }
 
         // Select move with most wins
         int bestWins = -1;
         Move bestMove = null;
-        for (Move move : moveToWins.keySet()) {
-            if (moveToWins.get(move) > bestWins) {
+        for (Move move : bestMoveCounts.keySet()) {
+            if (bestMoveCounts.get(move) > bestWins) {
                 bestMove = move;
-                bestWins = moveToWins.get(move);
+                bestWins = bestMoveCounts.get(move);
             }
         }
 
@@ -288,15 +288,15 @@ public class MinMaxMonteCarlo implements Player {
         }
 
         Random rng = new Random();
-        List<CastleID> possibleDragonCastles;
+        List<CastleID> possibleDragonCastles = new ArrayList<>();
 
         for (CastleID castleID : CastleID.values()) {
-            if (state.getMonsters(castleID, this.id).length() > 4 || state.getMonsters(castleID, this.opponentId).length() > 4) {
+            if (state.getMonsters(castleID, this.id).size() < 4 || state.getMonsters(castleID, this.opponentId).size() < 4) {
                 possibleDragonCastles.add(castleID);
             }
         }
 
-        return possibleDragonCastles.get(rng.nextInt(possibleDragonCastles.length()));
+        return possibleDragonCastles.get(rng.nextInt(possibleDragonCastles.size()));
     }
 
     private boolean isLostCause(GameState state) {
