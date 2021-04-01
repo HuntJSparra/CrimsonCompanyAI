@@ -32,6 +32,7 @@ public class CardCounter {
 
 
     public void cardDrawn(Monster drawnMonster) {
+        if(drawnMonster == null) return;
         Integer currentValue = numCards.get(drawnMonster);
         numCards.put( drawnMonster, currentValue-1 );
     }
