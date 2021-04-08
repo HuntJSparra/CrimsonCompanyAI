@@ -58,6 +58,10 @@ public class PremiumMarketium implements Player {
 
     @Override
     public BuyMonsterMove getBuyMonster(GameState state) {
+        return getBuyMonsterForPlay(state, this.id);
+    }
+
+    public BuyMonsterMove getBuyMonsterForPlay(GameState state, PlayerID play) {
         this.cardCounter.cardDrawn(state.getNextMonster());
         Monster bestCard = null;
         float bestValue = -1;
@@ -66,7 +70,7 @@ public class PremiumMarketium implements Player {
             if (!publicMonster.equals(Monster.SLAYER) && publicMonster.value < lowestNonSlayer.value) {
                 lowestNonSlayer = publicMonster;
             }
-            if (evaluateCard(state, publicMonster) > bestValue) {
+            if (evaluateCard(state, publicMonster, play) > bestValue) {
                 bestCard = publicMonster;
             }
         }
@@ -87,8 +91,12 @@ public class PremiumMarketium implements Player {
 
     @Override
     public RespondMove getRespond(GameState state, Monster mon, int price) {
-        boolean steal = evaluateCard(state, mon) < price * 2 && state.getCoins(this.id) >= price;
-        return new RespondMove(this.id, !steal, mon);
+        return getRespondForPlay(state, mon, price, this.id);
+    }
+
+    public RespondMove getRespondForPlay(GameState state, Monster mon, int price, PlayerID play) {
+        boolean steal = evaluateCard(state, mon, play) < price * 2 && state.getCoins(play) >= price;
+        return new RespondMove(play, !steal, mon);
     }
 
     @Override
@@ -98,7 +106,7 @@ public class PremiumMarketium implements Player {
 
     @Override
     public PlaceMonsterMove getPlace(GameState state, Monster mon) {
-        return (PlaceMonsterMove)act(state)
+        return (PlaceMonsterMove)act(state);
     }
 
     @Override
@@ -114,22 +122,23 @@ public class PremiumMarketium implements Player {
      * @param state
      * @param mon
      */
-    private float evaluateCard(GameState state, Monster mon) {
+    private float evaluateCard(GameState state, Monster mon, PlayerID play) {
 
         float monsterVal = mon.value;
+        PlayerID playsOpponent = play == this.id ? this.opponentId : this.id;
         if (mon == Monster.SLAYER) {
             for (CastleID value : CastleID.values()) {
-                if (state.getMonsters(value, this.opponentId).size() >= 4 || state.getMonsters(value, id).size() >= 4) {
+                if (state.getMonsters(value, playsOpponent).size() >= 4 || state.getMonsters(value, play).size() >= 4) {
                     continue;
                 }
                 int slayers = 0;
-                for (Monster monster : state.getMonsters(value, this.id)) {
+                for (Monster monster : state.getMonsters(value, play)) {
                     if (monster == Monster.SLAYER) {
                         slayers++;
                     }
                 }
                 int dragons = 0;
-                for (Monster monster : state.getMonsters(value, this.opponentId)) {
+                for (Monster monster : state.getMonsters(value, playsOpponent)) {
                     if (monster == Monster.DRAGON) {
                         dragons++;
                     }
@@ -166,10 +175,13 @@ public class PremiumMarketium implements Player {
         if(!(legalMoves.get(0) instanceof PlaceMonsterMove)) {
             legalMoves = new ArrayList<>();
             if(legalMoves.get(0) instanceof BuyMonsterMove) {
-                legalMoves.add(getBuyMonster(state));
+                legalMoves.add(getBuyMonsterForPlay(state, this.id));
             }
             else { // is a Respond Move
-                legalMoves.add(getRespond(state));
+                BuyMonsterMove lastMove = (BuyMonsterMove) state.getLastMove();
+                int price = lastMove.getPrice();
+                Monster mon = lastMove.getMonster();
+                legalMoves.add(getRespondForPlay(state, mon, price, this.id));
             }
         } 
         
@@ -246,6 +258,20 @@ public class PremiumMarketium implements Player {
         }
 
         List<Move> legalMoves = GameRules.getLegalMoves(state);
+
+        if(!(legalMoves.get(0) instanceof PlaceMonsterMove)) {
+            legalMoves = new ArrayList<>();
+            if(legalMoves.get(0) instanceof BuyMonsterMove) {
+                legalMoves.add(getBuyMonsterForPlay(state, this.opponentId));
+            }
+            else { // is a Respond Move
+                BuyMonsterMove lastMove = (BuyMonsterMove) state.getLastMove();
+                int price = lastMove.getPrice();
+                Monster mon = lastMove.getMonster();
+                legalMoves.add(getRespondForPlay(state, mon, price, this.opponentId));
+            }
+        }
+
         double bestScore = beta; // MIN = beta
         for (Move move : legalMoves) {
             List<Monster> backupDeck = new ArrayList(state.getDeck()); // Shallow-copy!
@@ -286,6 +312,20 @@ public class PremiumMarketium implements Player {
         }
 
         List<Move> legalMoves = GameRules.getLegalMoves(state);
+
+        if(!(legalMoves.get(0) instanceof PlaceMonsterMove)) {
+            legalMoves = new ArrayList<>();
+            if(legalMoves.get(0) instanceof BuyMonsterMove) {
+                legalMoves.add(getBuyMonsterForPlay(state, this.id));
+            }
+            else { // is a Respond Move
+                BuyMonsterMove lastMove = (BuyMonsterMove) state.getLastMove();
+                int price = lastMove.getPrice();
+                Monster mon = lastMove.getMonster();
+                legalMoves.add(getRespondForPlay(state, mon, price, this.id));
+            }
+        }
+
         double bestScore = alpha; // MIN = beta
         for (Move move : legalMoves) {
             List<Monster> backupDeck = new ArrayList(state.getDeck()); // Shallow-copy!
