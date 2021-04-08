@@ -35,6 +35,7 @@ public class GameState {
     
     static public GameState concedeState(GameState old, PlayerID play){
 	GameState state = new GameState(old);
+        System.out.println("CONCEDED!");
 
 	if(play == PlayerID.TOP){
 	    state.setCastleWon(CastleID.CastleA, PlayerID.BOT);
@@ -342,21 +343,28 @@ public class GameState {
 	    if (old_state.getCastleWon( opp_hide) == null){ 
 		bot_hidden = null;
 	    }
-	    else{
-		bot_hidden = opp_hide;
-	    }
 	}
 	if(play == PlayerID.BOT){
 	    deck_monsters = null;
 
 	    CastleID opp_hide = old_state.getHidden(PlayerID.TOP);
-	    if (old_state.getCastleWon( opp_hide) == null){ 
-		bot_hidden = null;
-	    }
-	    else{
-		bot_hidden = opp_hide;
+	    if (old_state.getCastleWon(opp_hide) == null){ 
+		top_hidden = null;
 	    }
 	}
     }
-				
+
+    @Override
+    public String toString() {
+        String ret = "";
+        ret += "PUBLIC MONSTERS:\n";
+        for (Monster public_monster : public_monsters) {
+            ret += "\t" + public_monster.name + "\n";
+        }
+        ret += "NEXT MONSTER: " + getNextMonster() + "\n";
+        ret += "GOLD TOP: " + this.top_coins + "\n";
+        ret += "GOLD BOT: " + this.bot_coins + "\n";
+        return ret;
+    }
+   
 }
