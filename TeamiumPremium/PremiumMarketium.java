@@ -66,7 +66,6 @@ public class PremiumMarketium implements Player {
     }
 
     public BuyMonsterMove getBuyMonsterForPlay(GameState state, PlayerID play) {
-        System.out.println("getBuyMonsterForPlay");
         PlayerID playsOpponent = (play == this.id) ? this.opponentId : this.id;
         Monster bestCard = null;
         float bestValue = -1;
@@ -83,19 +82,18 @@ public class PremiumMarketium implements Player {
 
         int price = (int) Math.min(bestValue, Math.min(state.getCoins(playsOpponent) + 1, state.getCoins(play)));
 
-        System.out.println("CORRECT PLAYER: " + GameRules.getLegalMoves(state).get(0).getPlayer());
-        System.out.println("PLAYER: " + play);
-        System.out.println(state);
-
+//        System.out.println("CORRECT PLAYER: " + GameRules.getLegalMoves(state).get(0).getPlayer());
+//        System.out.println("PLAYER: " + play);
+//        System.out.println(state);
         if (state.getCoins(play) >= price) {
             BuyMonsterMove m = new BuyMonsterMove(play, price, bestCard);
-            System.out.println("IS LEGAL : " + GameRules.isLegalMove(state, m));
-            System.out.println("price: " + price + " card: " + bestCard.name);
+//            System.out.println("IS LEGAL : " + GameRules.isLegalMove(state, m));
+//            System.out.println("price: " + price + " card: " + bestCard.name);
             return m;
         } else {
             BuyMonsterMove m = new BuyMonsterMove(play, 1, lowestNonSlayer);
-            System.out.println("IS LEGAL : " + GameRules.isLegalMove(state, m));
-            System.out.println("price: " + price + " card: " + lowestNonSlayer.name);
+//            System.out.println("IS LEGAL : " + GameRules.isLegalMove(state, m));
+//            System.out.println("price: " + price + " card: " + lowestNonSlayer.name);
             return m;
         }
     }
@@ -111,8 +109,23 @@ public class PremiumMarketium implements Player {
     }
 
     public RespondMove getRespondForPlay(GameState state, Monster mon, int price, PlayerID play) {
-        System.out.println("getRespondForPlay");
-        boolean steal = evaluateCard(state, mon, play) < price * 2 && state.getCoins(play) >= price;
+        PlayerID playsOpponent = (play == this.id) ? this.opponentId : this.id;
+        boolean steal
+                = evaluateCard(state, mon, play) >= price * 2
+                && (evaluateCard(state, mon, play) < evaluateCard(state, mon, playsOpponent)
+                //&& evaluateCard(state, mon, play) > evaluateCard(state, mon, playsOpponent)
+                || evaluateCard(state, mon, playsOpponent) > price)
+                //&& evaluateCard(state, mon, play) > price
+
+                //&& state.getCoins(play) >= state.getCoins(playsOpponent);
+                && state.getCoins(play) >= price;
+
+        // ways to steal
+        // eval(opp) > price    // punish opponent for quick deals
+        // eval(us) > price     // standard steal
+        // eval(us) > eval(opp) // picky stealing
+        // eval(us) < eval(opp) // sabotage focused
+        //System.out.println("Steal Eval: " + evaluateCard(state, mon, play) + " | " + evaluateCard(state, mon, playsOpponent));
         return new RespondMove(play, !steal, mon);
     }
 
@@ -178,10 +191,12 @@ public class PremiumMarketium implements Player {
         List<CastleID> possibleDragonCastles = new ArrayList<>();
 
         for (CastleID castleID : CastleID.values()) {
-            if (state.getMonsters(castleID, this.id).size() < 4 || state.getMonsters(castleID, this.opponentId).size() < 4) {
+            if (state.getMonsters(castleID, this.id).size() < 4 && state.getMonsters(castleID, this.opponentId).size() < 4) {
                 possibleDragonCastles.add(castleID);
             }
         }
+
+        System.out.println("Possible Drag Castles: " + possibleDragonCastles);
 
         return possibleDragonCastles.get(rng.nextInt(possibleDragonCastles.size()));
     }
@@ -269,33 +284,22 @@ public class PremiumMarketium implements Player {
         // Get the type (to figure out what action to do)
         // Min or Max
         if (depthRemaining < 0 || state.isGameOver()) {
-            System.out.println(depthRemaining);
             return evaluateState(state);
         }
 
         List<Move> legalMoves = GameRules.getLegalMoves(state);
 
-        try {
-            Move firstMove = legalMoves.get(0);
-            if (!(firstMove instanceof PlaceMonsterMove)) {
-                legalMoves = new ArrayList<>();
-                if (firstMove instanceof BuyMonsterMove) {
-                    legalMoves.add(getBuyMonsterForPlay(state, this.opponentId));
-                    System.out.println("in Min");
-                } else { // is a Respond Move
-                    BuyMonsterMove lastMove = (BuyMonsterMove) state.getLastMove();
-                    int price = lastMove.getPrice();
-                    Monster mon = lastMove.getMonster();
-                    legalMoves.add(getRespondForPlay(state, mon, price, this.opponentId));
-                }
+        Move firstMove = legalMoves.get(0);
+        if (!(firstMove instanceof PlaceMonsterMove)) {
+            legalMoves = new ArrayList<>();
+            if (firstMove instanceof BuyMonsterMove) {
+                legalMoves.add(getBuyMonsterForPlay(state, this.opponentId));
+            } else { // is a Respond Move
+                BuyMonsterMove lastMove = (BuyMonsterMove) state.getLastMove();
+                int price = lastMove.getPrice();
+                Monster mon = lastMove.getMonster();
+                legalMoves.add(getRespondForPlay(state, mon, price, this.opponentId));
             }
-        } catch (Exception e) {
-            System.out.println(state.getDeckSize());
-            for (CastleID value : CastleID.values()) {
-                System.out.println(state.getMonsters(value, this.id));
-                System.out.println(state.getMonsters(value, this.opponentId));
-            }
-            e.printStackTrace();
         }
 
         double bestScore = beta; // MIN = beta
@@ -338,7 +342,6 @@ public class PremiumMarketium implements Player {
 
     private double maximize(GameState state, double alpha, double beta, int depthRemaining) {
         if (depthRemaining < 0 || state.isGameOver()) {
-            System.out.println(depthRemaining);
             return evaluateState(state);
         }
 
@@ -350,7 +353,6 @@ public class PremiumMarketium implements Player {
             legalMoves = new ArrayList<>();
             if (firstMove instanceof BuyMonsterMove) {
                 legalMoves.add(getBuyMonsterForPlay(state, this.id));
-                System.out.println("in max");
             } else { // is a Respond Move
                 BuyMonsterMove lastMove = (BuyMonsterMove) state.getLastMove();
                 int price = lastMove.getPrice();
@@ -407,20 +409,46 @@ public class PremiumMarketium implements Player {
                 // No points for lost castles
             } else {
                 double ourTotal = 0;
-                for (Monster monster : state.getMonsters(castleID, this.id)) {
-                    ourTotal += monster.value;
+                double opponentTotal = 0;
+                double opponentDragons = 0, opponentSlayers = 0, ourDragons = 0, ourSlayers = 0;
+
+                List<Monster> ourMonsters = new ArrayList<>(state.getMonsters(castleID, this.id));
+                List<Monster> opponentMonsters = new ArrayList<>(state.getMonsters(castleID, this.opponentId));
+
+                if (state.getHidden(this.id) == castleID) {
+                    ourMonsters.add(Monster.DRAGON);
+                }
+                if (state.getHidden(this.opponentId) == castleID) {
+                    opponentMonsters.add(Monster.DRAGON);
                 }
 
-                double opponentTotal = 0;
-                for (Monster monster : state.getMonsters(castleID, this.opponentId)) {
-                    opponentTotal += monster.value;
+                for (Monster monster : ourMonsters) {
+                    if (monster == Monster.DRAGON) {
+                        ourDragons++;
+                    } else if (monster == Monster.SLAYER) {
+                        ourSlayers++;
+                    } else {
+                        ourTotal += monster.value;
+                    }
                 }
+                for (Monster monster : opponentMonsters) {
+                    if (monster == Monster.DRAGON) {
+                        opponentDragons++;
+                    } else if (monster == Monster.SLAYER) {
+                        opponentSlayers++;
+                    } else {
+                        opponentTotal += monster.value;
+                    }
+                }
+                
+                ourTotal += 6 * (ourDragons - opponentSlayers) + ourSlayers;
+                opponentTotal += 6 * (opponentDragons - ourSlayers) + opponentSlayers;
 
                 double winningProbabilityHueristic;
                 if (ourTotal + opponentTotal == 0) {
                     winningProbabilityHueristic = 0.5;
                 } else {
-                    winningProbabilityHueristic = ourTotal / (ourTotal + opponentTotal);
+                    winningProbabilityHueristic = (1 + ourTotal) / (ourTotal + opponentTotal + 1);
                 }
 
                 score += winningProbabilityHueristic;
