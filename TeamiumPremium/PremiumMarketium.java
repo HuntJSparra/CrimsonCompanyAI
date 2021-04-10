@@ -80,7 +80,12 @@ public class PremiumMarketium implements Player {
             }
         }
 
-        int price = (int) Math.min(bestValue, Math.min(state.getCoins(playsOpponent) + 1, state.getCoins(play)));
+        boolean playHasSignificantLead = state.getCoins(play) >= state.getCoins(playsOpponent) + 3;
+
+        int priceForOpponent = state.getCoins(playsOpponent);
+        if (!playHasSignificantLead) priceForOpponent++;
+
+        int price = (int) Math.min(bestValue, Math.min(priceForOpponent, state.getCoins(play)));
 
 //        System.out.println("CORRECT PLAYER: " + GameRules.getLegalMoves(state).get(0).getPlayer());
 //        System.out.println("PLAYER: " + play);
