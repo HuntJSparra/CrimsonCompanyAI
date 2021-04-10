@@ -351,10 +351,10 @@ public class GameState {
 
 	    CastleID opp_hide = old_state.getHidden(PlayerID.TOP);
 	    if (old_state.getCastleWon( opp_hide) == null){ 
-		bot_hidden = null;
+		top_hidden = null;
 	    }
 	    else{
-		bot_hidden = opp_hide;
+		top_hidden = opp_hide;
 	    }
 	}
     }
