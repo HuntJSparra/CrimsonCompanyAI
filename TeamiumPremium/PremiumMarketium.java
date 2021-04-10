@@ -30,8 +30,13 @@ public class PremiumMarketium implements Player {
     int MAX_DEPTH = 15;
     int MAX_CARLO = 30;
 
+    public PremiumMarketium(int maxDepth) {
+        this.cardCounter = this.cardCounter = new CardCounter(); // Look away
+        this.MAX_DEPTH = maxDepth;
+    }
+
     public PremiumMarketium() {
-        this.cardCounter = new CardCounter();
+        this(15);
     }
 
     @Override

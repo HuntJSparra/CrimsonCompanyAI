@@ -35,7 +35,6 @@ public class GameState {
     
     static public GameState concedeState(GameState old, PlayerID play){
 	GameState state = new GameState(old);
-        System.out.println("CONCEDED!");
 
 	if(play == PlayerID.TOP){
 	    state.setCastleWon(CastleID.CastleA, PlayerID.BOT);
