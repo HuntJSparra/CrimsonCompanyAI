@@ -348,8 +348,11 @@ public class GameState {
 	    deck_monsters = null;
 
 	    CastleID opp_hide = old_state.getHidden(PlayerID.TOP);
-	    if (old_state.getCastleWon(opp_hide) == null){ 
+	    if (old_state.getCastleWon( opp_hide) == null){ 
 		top_hidden = null;
+	    }
+	    else{
+		top_hidden = opp_hide;
 	    }
 	}
     }
