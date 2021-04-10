@@ -46,21 +46,34 @@ public class RandomRush implements Player {
     public BuyMonsterMove getBuyMonster(GameState state) {
         List<Monster> monsters = state.getPublicMonsters();
 
-        Monster cheapestMonster = monsters.get(0);
+        Monster buyMonster = monsters.get(0);
 
         // choose the cheapest monster
-        for (Monster monster: monsters) {
-            if (cheapestMonster.value > monster.value) cheapestMonster = monster;
+        if (state.getCastleWon(this.rushCastle) == null) {
+            Monster cheapestMonster = monsters.get(0);
+            for (Monster monster: monsters) {
+                if (cheapestMonster.value > monster.value) cheapestMonster = monster;
+            }
+            buyMonster = cheapestMonster;
         }
+        else {
+            for (Monster monster: monsters) {
+                if (buyMonster.value < monster.value) buyMonster = monster;
+            }
+        }
+        
 
-        System.out.println(this.play + ": I am trying to buy a " + cheapestMonster + ", which has a value of " + cheapestMonster.value + ".");
+        System.out.println(this.play + ": I am trying to buy a " + buyMonster + ", which has a value of " + buyMonster.value + ".");
 
         // propose buying monster at 1/2 its value
-        int price = (int) Math.ceil((float) cheapestMonster.value / 2f);
+        int price = (int) Math.ceil((float) buyMonster.value / 2f);
         price = Math.min(price, state.getCoins(this.play));
-        price = Math.min(price, state.getCoins(this.opponent) + 1);
 
-        BuyMonsterMove move = new BuyMonsterMove(this.play, price, cheapestMonster);
+        if (state.getCoins(this.play) > state.getCoins(this.opponent) + 3) {
+            price = state.getCoins(this.opponent) + 1;
+        }
+
+        BuyMonsterMove move = new BuyMonsterMove(this.play, price, buyMonster);
         System.out.println(this.play + ": I decided to try to buy it for " + price + " coins.");
         if (!GameRules.isLegalMove(state, move)) System.out.println("Concede.");
         return move;
@@ -84,12 +97,13 @@ public class RandomRush implements Player {
             price = state.getCoins(this.play);
         }
 
-        boolean pass = myPrice <= price;
+        boolean steal = (myPrice > price || state.getCoins(this.play) > state.getCoins(this.opponent) + 3)
+                        && (state.getCoins(this.play) >= price);
 
-        if (pass) System.out.println(this.play + ": I decided to steal.");
+        if (steal) System.out.println(this.play + ": I decided to steal, and I have " + state.getCoins(this.play));
         else System.out.println(this.play + ": I decided not to steal.");
     
-        return new RespondMove(this.play, pass, monster);
+        return new RespondMove(this.play, !steal, monster);
     }
     
     //This function is called when the opponent pays the price to steal
