@@ -83,7 +83,9 @@ public class PremiumMarketium implements Player {
         boolean playHasSignificantLead = state.getCoins(play) >= state.getCoins(playsOpponent) + 3;
 
         int priceForOpponent = state.getCoins(playsOpponent);
-        if (!playHasSignificantLead) priceForOpponent++;
+        if (playHasSignificantLead) {
+            priceForOpponent++;
+        }
 
         int price = (int) Math.min(bestValue, Math.min(priceForOpponent, state.getCoins(play)));
 
@@ -124,6 +126,16 @@ public class PremiumMarketium implements Player {
 
                 //&& state.getCoins(play) >= state.getCoins(playsOpponent);
                 && state.getCoins(play) >= price;
+
+        int castlesWith3 = 0;
+        for (CastleID id : CastleID.values()) {
+            if (state.getMonsters(id, playsOpponent).size() == 3 && state.getCastleWon(id) == null) {
+                castlesWith3++;
+            }
+        }
+        if (castlesWith3 > 0 && state.getCoins(play) >= price) {
+            steal = true;
+        }
 
         // ways to steal
         // eval(opp) > price    // punish opponent for quick deals
@@ -445,7 +457,7 @@ public class PremiumMarketium implements Player {
                         opponentTotal += monster.value;
                     }
                 }
-                
+
                 ourTotal += 6 * (ourDragons - opponentSlayers) + ourSlayers;
                 opponentTotal += 6 * (opponentDragons - ourSlayers) + opponentSlayers;
 

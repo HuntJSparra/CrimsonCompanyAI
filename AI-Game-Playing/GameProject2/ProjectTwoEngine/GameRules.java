@@ -165,7 +165,7 @@ public class GameRules{
     //Note: You can choose any public monster
     // Price must be less than your coins
     static List<Move> getLegalBuyMonster(GameState state){
-	System.out.println("Get Legal Buy Monster");
+	//System.out.println("Get Legal Buy Monster");
 	List<Move> leg_moves = new ArrayList<Move>();
 	PlayerID play = state.getCurPlayer();
 	List<Monster> pub_mons = state.getPublicMonsters();
@@ -182,7 +182,7 @@ public class GameRules{
 
     //Note: You can only steal if you have enough coins to pay
     static List<Move> getLegalRespond(GameState state){
-	System.out.println("Get Legal Respond");
+	//System.out.println("Get Legal Respond");
 	List<Move> leg_moves = new ArrayList<Move>();
 	BuyMonsterMove last_move = (BuyMonsterMove) state.getLastMove();
 	PlayerID play = otherPlayer(state.getCurPlayer());
@@ -200,7 +200,7 @@ public class GameRules{
 
     //Note: You can only place a monster at a castle that hasn't been won yet
     static List<Move> getLegalPlaceMonster(GameState state){
-	System.out.println("Get Legal Place Monster");
+	//System.out.println("Get Legal Place Monster");
 	List<Move> leg_moves = new ArrayList<Move>();
 	RespondMove last_move = (RespondMove) state.getLastMove();
 	Monster monst = last_move.getMonster();
@@ -306,7 +306,7 @@ public class GameRules{
     //Add Hidden Dragons (if needed)  and do the battle
     //Ties are determined randomly
     static GameState doBattle(GameState state, CastleID cas){
-	System.out.println("Battle at "+cas.name());
+	//System.out.println("Battle at "+cas.name());
 
 	if( state.getHidden(PlayerID.TOP) == cas ){
 	    state.addMonster(cas, PlayerID.TOP, Monster.DRAGON);

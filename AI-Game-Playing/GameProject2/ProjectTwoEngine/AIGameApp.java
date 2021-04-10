@@ -48,11 +48,11 @@ public class AIGameApp extends Application{
     GameState state;
     
     // You can raise this delay to slow down the AI moves
-    final double DELAY_TIME = 1.5;
+    final double DELAY_TIME = 0.75;
 
     public void start(Stage primaryStage){
 	//IMPORTANT : Change these lines to change who is playing!
-	TOP_Player = new RandomPlayer();
+	TOP_Player = new AliceTheQuick();
 	BOT_Player =  new PremiumMarketium();
 
 	//IMPORTANT : If there is a File_Name
