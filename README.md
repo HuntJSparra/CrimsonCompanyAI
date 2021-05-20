@@ -10,7 +10,7 @@ Yes, we know the name "TeamiumPremium" is ~~terrible~~ great. It keeps things li
 **AI-Game-Playing**: Directory containing the Crimson Company environment, provided by https://github.com/mlepinski/AI-Game-Playing (*main* branch).
 
 ## AI-Game-Playing Subtree
-The Crimson Company environment is handled using *git subtree* (as opposed to *submodule*). *Subtree* was chosen over *submodule* for usability when the Oware environment is updated. *Subtree* simply requires the repository to be updated. *Submodule* requires all contributors to update, making user-error likely.
+The Crimson Company environment is handled using *git subtree* (as opposed to *submodule*). *Subtree* was chosen over *submodule* for usability when the Crimson Company environment is updated. *Subtree* simply requires the repository to be updated. *Submodule* requires all contributors to update, making user-error likely.
 
 *Subtree* also allows the repository to be cloned without extra commands.
 
